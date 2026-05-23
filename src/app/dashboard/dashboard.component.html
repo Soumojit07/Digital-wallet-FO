@@ -40,29 +40,115 @@
       </mat-card>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <mat-card class="action-card" (click)="selectedTab = 1">
-        <mat-icon class="action-icon">send</mat-icon>
-        <h4>Send Money</h4>
-        <p>Transfer to anyone</p>
-      </mat-card>
-      <mat-card class="action-card" (click)="selectedTab = 2">
-        <mat-icon class="action-icon">add_circle</mat-icon>
-        <h4>Add Money</h4>
-        <p>From bank account</p>
-      </mat-card>
-      <mat-card class="action-card" (click)="selectedTab = 3">
-        <mat-icon class="action-icon">account_balance</mat-icon>
-        <h4>Bank Accounts</h4>
-        <p>Manage accounts</p>
-      </mat-card>
-      <mat-card class="action-card" (click)="selectedTab = 4">
-        <mat-icon class="action-icon">history</mat-icon>
-        <h4>History</h4>
-        <p>View transactions</p>
-      </mat-card>
+<!-- QUICK ACTIONS -->
+
+<div class="quick-actions">
+
+  <!-- SEND MONEY -->
+
+  <mat-card
+    class="action-card send-card"
+    (click)="selectedTab = 0">
+
+    <div class="icon-wrapper">
+
+      <div class="icon-glow"></div>
+
+      <mat-icon class="action-icon">
+        send_rounded
+      </mat-icon>
+
     </div>
+
+    <h4>
+      Send Money
+    </h4>
+
+    <p>
+      Transfer to anyone
+    </p>
+
+  </mat-card>
+
+  <!-- ADD MONEY -->
+
+  <mat-card
+    class="action-card add-card"
+    (click)="selectedTab = 1">
+
+    <div class="icon-wrapper">
+
+      <div class="icon-glow"></div>
+
+      <mat-icon class="action-icon">
+        account_balance_wallet
+      </mat-icon>
+
+    </div>
+
+    <h4>
+      Add Money
+    </h4>
+
+    <p>
+      From bank account
+    </p>
+
+  </mat-card>
+
+  <!-- BANK ACCOUNTS -->
+
+  <mat-card
+    class="action-card bank-card"
+    (click)="selectedTab = 2">
+
+    <div class="icon-wrapper">
+
+      <div class="icon-glow"></div>
+
+      <mat-icon class="action-icon">
+        account_balance
+      </mat-icon>
+
+    </div>
+
+    <h4>
+      Bank Accounts
+    </h4>
+
+    <p>
+      Manage accounts
+    </p>
+
+  </mat-card>
+
+  <!-- HISTORY -->
+
+  <mat-card
+    class="action-card history-card"
+    (click)="selectedTab = 3">
+
+    <div class="icon-wrapper">
+
+      <div class="icon-glow"></div>
+
+      <mat-icon class="action-icon">
+        receipt_long
+      </mat-icon>
+
+    </div>
+
+    <h4>
+      History
+    </h4>
+
+    <p>
+      View transactions
+    </p>
+
+  </mat-card>
+
+</div>
 
     <!-- Tab Content -->
     <mat-tab-group [(selectedIndex)]="selectedTab" class="dashboard-tabs">
