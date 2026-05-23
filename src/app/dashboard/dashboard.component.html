@@ -1,0 +1,252 @@
+<div class="dashboard-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <div class="toolbar-left">
+      <mat-icon class="toolbar-icon">account_balance_wallet</mat-icon>
+      <span>Digital Wallet</span>
+    </div>
+    <div class="toolbar-right">
+      <span class="user-info">{{ user?.fullName }}</span>
+      <button mat-button (click)="logout()" class="logout-btn">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <div class="dashboard-content" *ngIf="!isLoading; else loading">
+    <!-- Balance Card -->
+    <div class="balance-section">
+      <mat-card class="balance-card">
+        <div class="balance-header">
+          <mat-icon class="balance-icon">account_balance</mat-icon>
+          <div>
+            <h3>Total Balance</h3>
+            <p class="upi-id">UPI: {{ user?.upiId }}</p>
+          </div>
+        </div>
+        <div class="balance-amount">
+          <h1>{{ formatAmount(wallet?.balance) }}</h1>
+        </div>
+        <div class="balance-limits">
+          <div class="limit-item">
+            <span class="limit-label">Daily Limit</span>
+            <span class="limit-value">{{ formatAmount(wallet?.dailyLimit) }}</span>
+          </div>
+          <div class="limit-item">
+            <span class="limit-label">Transaction Limit</span>
+            <span class="limit-value">{{ formatAmount(wallet?.transactionLimit) }}</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <mat-card class="action-card" (click)="selectedTab = 1">
+        <mat-icon class="action-icon">send</mat-icon>
+        <h4>Send Money</h4>
+        <p>Transfer to anyone</p>
+      </mat-card>
+      <mat-card class="action-card" (click)="selectedTab = 2">
+        <mat-icon class="action-icon">add_circle</mat-icon>
+        <h4>Add Money</h4>
+        <p>From bank account</p>
+      </mat-card>
+      <mat-card class="action-card" (click)="selectedTab = 3">
+        <mat-icon class="action-icon">account_balance</mat-icon>
+        <h4>Bank Accounts</h4>
+        <p>Manage accounts</p>
+      </mat-card>
+      <mat-card class="action-card" (click)="selectedTab = 4">
+        <mat-icon class="action-icon">history</mat-icon>
+        <h4>History</h4>
+        <p>View transactions</p>
+      </mat-card>
+    </div>
+
+    <!-- Tab Content -->
+    <mat-tab-group [(selectedIndex)]="selectedTab" class="dashboard-tabs">
+      <!-- Send Money Tab -->
+      <mat-tab label="Send Money">
+        <div class="tab-content">
+          <mat-card class="form-card">
+            <mat-card-header>
+              <mat-card-title>Send Money</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="sendMoneyForm">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>UPI ID / Phone / Username</mat-label>
+                  <input matInput formControlName="targetIdentifier" placeholder="Enter recipient's UPI ID, phone, or username">
+                  <mat-icon matPrefix class="field-icon">person_search</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Amount (₹)</mat-label>
+                  <input matInput type="number" formControlName="amount" placeholder="Enter amount">
+                  <mat-icon matPrefix class="field-icon">payments</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Description (Optional)</mat-label>
+                  <input matInput formControlName="description" placeholder="Add a note">
+                  <mat-icon matPrefix class="field-icon">note</mat-icon>
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" class="full-width action-btn" (click)="onSendMoney()">
+                  <mat-icon>send</mat-icon>
+                  Send Money
+                </button>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Add Money Tab -->
+      <mat-tab label="Add Money">
+        <div class="tab-content">
+          <mat-card class="form-card">
+            <mat-card-header>
+              <mat-card-title>Add Money from Bank</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="bankAccounts.length === 0" class="no-accounts">
+                <mat-icon class="no-data-icon">account_balance</mat-icon>
+                <p>No bank accounts linked</p>
+                <button mat-button (click)="selectedTab = 3">Link Bank Account</button>
+              </div>
+              <form [formGroup]="addFundsForm" *ngIf="bankAccounts.length > 0">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Select Bank Account</mat-label>
+                  <mat-select formControlName="bankAccountId">
+                    <mat-option [value]="account.id" *ngFor="let account of bankAccounts">
+                      {{ account.bankName }} - {{ account.accountNumber }} (Balance: {{ formatAmount(account.balance) }})
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon matPrefix class="field-icon">account_balance</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Amount (₹)</mat-label>
+                  <input matInput type="number" formControlName="amount" placeholder="Enter amount">
+                  <mat-icon matPrefix class="field-icon">payments</mat-icon>
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" class="full-width action-btn" (click)="onAddFunds()">
+                  <mat-icon>add_circle</mat-icon>
+                  Add Money
+                </button>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- Bank Accounts Tab -->
+      <mat-tab label="Bank Accounts">
+        <div class="tab-content">
+          <mat-card class="form-card">
+            <mat-card-header>
+              <mat-card-title>Link Bank Account</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="linkBankAccountForm">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Bank Name</mat-label>
+                  <input matInput formControlName="bankName" placeholder="Enter bank name">
+                  <mat-icon matPrefix class="field-icon">account_balance</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Account Number</mat-label>
+                  <input matInput formControlName="accountNumber" placeholder="Enter account number">
+                  <mat-icon matPrefix class="field-icon">credit_card</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>IFSC Code</mat-label>
+                  <input matInput formControlName="ifscCode" placeholder="Enter IFSC code (e.g., SBIN0001234)">
+                  <mat-icon matPrefix class="field-icon">code</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Balance (₹)</mat-label>
+                  <input matInput type="number" formControlName="balance" placeholder="Enter initial balance">
+                  <mat-icon matPrefix class="field-icon">payments</mat-icon>
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" class="full-width action-btn" (click)="onLinkBankAccount()">
+                  <mat-icon>link</mat-icon>
+                  Link Account
+                </button>
+              </form>
+            </mat-card-content>
+          </mat-card>
+
+          <div class="bank-accounts-list">
+            <mat-card class="bank-account-card" *ngFor="let account of bankAccounts">
+              <div class="bank-info">
+                <mat-icon class="bank-icon">account_balance</mat-icon>
+                <div>
+                  <h4>{{ account.bankName }}</h4>
+                  <p>Account: ****{{ account.accountNumber.slice(-4) }}</p>
+                  <p>IFSC: {{ account.ifscCode }}</p>
+                </div>
+              </div>
+              <div class="bank-balance">
+                <span class="balance-label">Available Balance</span>
+                <span class="balance-amount">{{ formatAmount(account.balance) }}</span>
+              </div>
+            </mat-card>
+
+            <mat-card class="no-accounts-card" *ngIf="bankAccounts.length === 0">
+              <div class="no-accounts">
+                <mat-icon class="no-data-icon">account_balance</mat-icon>
+                <p>No bank accounts linked yet</p>
+                <p class="sub-text">Link your bank account to add or withdraw funds</p>
+              </div>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Transaction History Tab -->
+      <mat-tab label="Transaction History">
+        <div class="tab-content">
+          <div class="transactions-list">
+            <mat-card class="transaction-card" *ngFor="let txn of transactions">
+              <div class="transaction-icon" [style.color]="getTransactionColor(txn.type)">
+                <mat-icon>{{ getTransactionIcon(txn.type) }}</mat-icon>
+              </div>
+              <div class="transaction-details">
+                <h4>{{ txn.description || formatTransactionType(txn.type) }}</h4>
+                <p class="transaction-id">ID: {{ txn.transactionId }}</p>
+                <p class="transaction-date">{{ txn.timestamp | date:'medium' }}</p>
+              </div>
+              <div class="transaction-amount" [style.color]="getTransactionColor(txn.type)">
+                <span class="amount">{{ formatAmount(txn.amount) }}</span>
+                <span class="status" *ngIf="txn.cashbackAmount > 0">+{{ formatAmount(txn.cashbackAmount) }} cashback</span>
+              </div>
+            </mat-card>
+
+            <mat-card class="no-transactions-card" *ngIf="transactions.length === 0">
+              <div class="no-transactions">
+                <mat-icon class="no-data-icon">receipt_long</mat-icon>
+                <p>No transactions yet</p>
+                <p class="sub-text">Start by sending money or adding funds to your wallet</p>
+              </div>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <ng-template #loading>
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading your wallet...</p>
+    </div>
+  </ng-template>
+</div>

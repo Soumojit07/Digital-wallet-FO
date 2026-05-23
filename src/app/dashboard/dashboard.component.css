@@ -1,0 +1,373 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.toolbar {
+  padding: 0 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar-icon {
+  font-size: 28px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-info {
+  font-weight: 500;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.balance-section {
+  margin-bottom: 2rem;
+}
+
+.balance-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.balance-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.balance-icon {
+  font-size: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.balance-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.upi-id {
+  margin: 4px 0 0 0;
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.balance-amount h1 {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.balance-limits {
+  display: flex;
+  gap: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.limit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.limit-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.limit-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.action-card {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #667eea;
+}
+
+.action-icon {
+  font-size: 48px;
+  color: #667eea;
+  margin-bottom: 1rem;
+}
+
+.action-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.action-card p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.dashboard-tabs {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+}
+
+.tab-content {
+  padding: 1rem;
+}
+
+.form-card {
+  max-width: 500px;
+  margin: 0 auto;
+  border-radius: 12px;
+}
+
+.form-card mat-card-header {
+  padding-bottom: 1rem;
+}
+
+.form-card mat-card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.field-icon {
+  margin-right: 8px;
+  color: #667eea;
+}
+
+.action-btn {
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.action-btn:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+}
+
+.no-accounts,
+.no-transactions {
+  text-align: center;
+  padding: 3rem;
+}
+
+.no-data-icon {
+  font-size: 64px;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.no-accounts p,
+.no-transactions p {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.sub-text {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.bank-accounts-list,
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bank-account-card,
+.transaction-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.bank-account-card:hover,
+.transaction-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.bank-info,
+.transaction-details {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bank-icon,
+.transaction-icon {
+  font-size: 48px;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.bank-info h4,
+.transaction-details h4 {
+  margin: 0 0 4px 0;
+  color: #333;
+}
+
+.bank-info p,
+.transaction-details p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.transaction-id {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.transaction-date {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.bank-balance,
+.transaction-amount {
+  text-align: right;
+}
+
+.balance-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.balance-amount,
+.amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.status {
+  display: block;
+  font-size: 0.85rem;
+  color: #66bb6a;
+  margin-top: 4px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    padding: 0 1rem;
+  }
+
+  .toolbar-right {
+    gap: 12px;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .dashboard-content {
+    padding: 1rem;
+  }
+
+  .balance-card {
+    padding: 1.5rem;
+  }
+
+  .balance-amount h1 {
+    font-size: 2rem;
+  }
+
+  .balance-limits {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bank-account-card,
+  .transaction-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .bank-balance,
+  .transaction-amount {
+    text-align: left;
+  }
+}
+

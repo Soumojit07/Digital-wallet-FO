@@ -1,0 +1,102 @@
+<div class="register-container">
+  <div class="register-wrapper">
+    <div class="register-card">
+      <div class="register-header">
+        <div class="logo">
+          <mat-icon class="logo-icon">account_balance_wallet</mat-icon>
+        </div>
+        <h1>Create Account</h1>
+        <p>Join thousands of users managing their money digitally</p>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <input matInput placeholder="Choose a username" formControlName="username" required>
+          <mat-icon matPrefix class="field-icon">person</mat-icon>
+          <mat-error *ngIf="registerForm.get('username')?.hasError('required')">Username is required</mat-error>
+          <mat-error *ngIf="registerForm.get('username')?.hasError('minlength')">Minimum 3 characters</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Full Name</mat-label>
+          <input matInput placeholder="Enter your full name" formControlName="fullName" required>
+          <mat-icon matPrefix class="field-icon">badge</mat-icon>
+          <mat-error *ngIf="registerForm.get('fullName')?.hasError('required')">Full name is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput placeholder="Enter your email" formControlName="email" type="email" required>
+          <mat-icon matPrefix class="field-icon">email</mat-icon>
+          <mat-error *ngIf="registerForm.get('email')?.hasError('required')">Email is required</mat-error>
+          <mat-error *ngIf="registerForm.get('email')?.hasError('email')">Enter a valid email</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Phone Number</mat-label>
+          <input matInput placeholder="Enter 10-digit phone number" formControlName="phoneNumber" type="tel" required>
+          <mat-icon matPrefix class="field-icon">phone</mat-icon>
+          <mat-error *ngIf="registerForm.get('phoneNumber')?.hasError('required')">Phone number is required</mat-error>
+          <mat-error *ngIf="registerForm.get('phoneNumber')?.hasError('pattern')">Enter a valid 10-digit phone number</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput placeholder="Create a password" formControlName="password" [type]="hidePassword ? 'password' : 'text'" required>
+          <mat-icon matPrefix class="field-icon">lock</mat-icon>
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button" aria-label="Toggle password visibility">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="registerForm.get('password')?.hasError('required')">Password is required</mat-error>
+          <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">Minimum 6 characters</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Account Type</mat-label>
+          <mat-select formControlName="role">
+            <mat-option value="ROLE_USER">Personal Account</mat-option>
+            <mat-option value="ROLE_MERCHANT">Merchant Account</mat-option>
+          </mat-select>
+          <mat-icon matPrefix class="field-icon">account_circle</mat-icon>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" class="full-width register-btn" type="submit" [disabled]="registerForm.invalid || isLoading">
+          <span *ngIf="!isLoading">Create Account</span>
+          <span *ngIf="isLoading">
+            <mat-spinner diameter="20"></mat-spinner>
+          </span>
+        </button>
+      </form>
+
+      <div class="login-link">
+        <p>Already have an account? <a routerLink="/login">Sign in</a></p>
+      </div>
+    </div>
+
+    <div class="register-info">
+      <div class="info-content">
+        <h2>Get Started Today</h2>
+        <p>Experience the future of digital payments</p>
+        <ul>
+          <li>
+            <mat-icon>account_balance</mat-icon>
+            <span>₹1000 signup bonus</span>
+          </li>
+          <li>
+            <mat-icon>send</mat-icon>
+            <span>Instant UPI transfers</span>
+          </li>
+          <li>
+            <mat-icon>receipt_long</mat-icon>
+            <span>Track all transactions</span>
+          </li>
+          <li>
+            <mat-icon>verified_user</mat-icon>
+            <span>100% secure transactions</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,65 @@
+<div class="login-container">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo">
+          <mat-icon class="logo-icon">account_balance_wallet</mat-icon>
+        </div>
+        <h1>Welcome Back</h1>
+        <p>Sign in to your digital wallet</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <input matInput placeholder="Enter your username" formControlName="username" required>
+          <mat-icon matPrefix class="field-icon">person</mat-icon>
+          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">Username is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput placeholder="Enter your password" formControlName="password" [type]="hidePassword ? 'password' : 'text'" required>
+          <mat-icon matPrefix class="field-icon">lock</mat-icon>
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button" aria-label="Toggle password visibility">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Password is required</mat-error>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">Minimum 6 characters</mat-error>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" class="full-width login-btn" type="submit" [disabled]="loginForm.invalid || isLoading">
+          <span *ngIf="!isLoading">Sign In</span>
+          <span *ngIf="isLoading">
+            <mat-spinner diameter="20"></mat-spinner>
+          </span>
+        </button>
+      </form>
+
+      <div class="register-link">
+        <p>Don't have an account? <a routerLink="/register">Sign up</a></p>
+      </div>
+    </div>
+
+    <div class="login-info">
+      <div class="info-content">
+        <h2>Digital Wallet</h2>
+        <p>Secure, fast, and easy way to manage your money</p>
+        <ul>
+          <li>
+            <mat-icon>security</mat-icon>
+            <span>Bank-grade security</span>
+          </li>
+          <li>
+            <mat-icon>flash_on</mat-icon>
+            <span>Instant transfers</span>
+          </li>
+          <li>
+            <mat-icon>card_giftcard</mat-icon>
+            <span>Cashback rewards</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
