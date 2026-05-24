@@ -7,8 +7,6 @@ import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 declare var Chart: any;
-// Declare Chart.js global (loaded via CDN in index.html — see NOTE below)
-declare var Chart: any;
 
 @Component({
   selector: 'app-dashboard',
@@ -22,6 +20,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   wallet: any;
   transactions: any[] = [];
   bankAccounts: any[] = [];
+
   isLoading = true;
   selectedTab = 0;
 
@@ -47,6 +46,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private snackBar: MatSnackBar
   ) {
+
     this.sendMoneyForm = this.fb.group({
       targetIdentifier: ['', Validators.required],
       amount: [0, [Validators.required, Validators.min(1)]],
@@ -65,395 +65,629 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.linkBankAccountForm = this.fb.group({
       bankName: ['', Validators.required],
-      accountNumber: ['', [Validators.required, Validators.minLength(10)]],
-      ifscCode: ['', [Validators.required, Validators.pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/)]],
-      balance: [0, [Validators.required, Validators.min(0)]]
+      accountNumber: ['', [
+        Validators.required,
+        Validators.minLength(10)
+      ]],
+      ifscCode: ['', [
+        Validators.required,
+        Validators.pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/)
+      ]],
+      balance: [0, [
+        Validators.required,
+        Validators.min(0)
+      ]]
     });
   }
 
-  // ─── LIFECYCLE ───────────────────────────────────────────────
+  // =========================================================
+  // LIFECYCLE
+  // =========================================================
 
   ngOnInit(): void {
+
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
     }
+
     this.user = this.auth.getUserData();
+
     this.loadDashboardData();
   }
 
   ngAfterViewInit(): void {
-    // Small delay to ensure DOM is ready after data loads
+
     setTimeout(() => {
+
       this.initStarfield();
+
       this.init3DTilt();
+
       this.initActivityChart();
+
     }, 400);
   }
 
+  ngOnDestroy(): void {
+
+    if (this.starAnimFrame) {
+      cancelAnimationFrame(this.starAnimFrame);
+    }
+
+    if (this.activityChart) {
+      this.activityChart.destroy();
+    }
+  }
+
+  // =========================================================
+  // COMMON POPUP METHOD
+  // =========================================================
+
+  showPopup(message: string, duration: number = 3000): void {
+
+    this.snackBar.open(message, 'Close', {
+
+      duration: duration,
+
+      horizontalPosition: 'center',
+
+      verticalPosition: 'top',
+
+      panelClass: ['center-snackbar']
+
+    });
+  }
+
+  // =========================================================
+  // HELPERS
+  // =========================================================
 
   getInitials(): string {
-  if (!this.user?.fullName) return '??';
-  const parts = this.user.fullName.trim().split(' ');
-  const first = parts[0]?.charAt(0) || '';
-  const second = parts[1]?.charAt(0) || '';
-  return (first + second).toUpperCase();
-}
 
-getBalanceDisplay(): string {
-  if (!this.wallet?.balance && this.wallet?.balance !== 0) return '0.00';
-  return Number(this.wallet.balance).toLocaleString('en-IN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-getTxnIconClass(type: string): string {
-  switch (type) {
-    case 'WALLET_TO_WALLET':
-    case 'WALLET_TO_BANK':   return 'txn-icon-out';
-    case 'BANK_TO_WALLET':   return 'txn-icon-in';
-    case 'MERCHANT_PAYMENT': return 'txn-icon-shop';
-    default: return 'txn-icon-def';
-  }
-}
+    if (!this.user?.fullName) {
+      return '??';
+    }
 
-getTxnAmountClass(type: string): string {
-  switch (type) {
-    case 'WALLET_TO_WALLET':
-    case 'MERCHANT_PAYMENT':
-    case 'WALLET_TO_BANK': return 'txn-amt-out';
-    case 'BANK_TO_WALLET': return 'txn-amt-in';
-    default: return 'txn-amt-def';
-  }
-}
+    const parts = this.user.fullName.trim().split(' ');
 
-getTransactionSign(type: string): string {
-  switch (type) {
-    case 'WALLET_TO_WALLET':
-    case 'MERCHANT_PAYMENT':
-    case 'WALLET_TO_BANK': return '-';
-    case 'BANK_TO_WALLET': return '+';
-    default: return '';
-  }
-}
-  ngOnDestroy(): void {
-    if (this.starAnimFrame) cancelAnimationFrame(this.starAnimFrame);
-    if (this.activityChart) this.activityChart.destroy();
+    const first = parts[0]?.charAt(0) || '';
+
+    const second = parts[1]?.charAt(0) || '';
+
+    return (first + second).toUpperCase();
   }
 
-  // ─── DATA LOADING ─────────────────────────────────────────────
+  getBalanceDisplay(): string {
+
+    if (!this.wallet?.balance && this.wallet?.balance !== 0) {
+      return '0.00';
+    }
+
+    return Number(this.wallet.balance).toLocaleString('en-IN', {
+
+      minimumFractionDigits: 2,
+
+      maximumFractionDigits: 2
+
+    });
+  }
+
+  getTxnIconClass(type: string): string {
+
+    switch (type) {
+
+      case 'WALLET_TO_WALLET':
+      case 'WALLET_TO_BANK':
+        return 'txn-icon-out';
+
+      case 'BANK_TO_WALLET':
+        return 'txn-icon-in';
+
+      case 'MERCHANT_PAYMENT':
+        return 'txn-icon-shop';
+
+      default:
+        return 'txn-icon-def';
+    }
+  }
+
+  getTxnAmountClass(type: string): string {
+
+    switch (type) {
+
+      case 'WALLET_TO_WALLET':
+      case 'MERCHANT_PAYMENT':
+      case 'WALLET_TO_BANK':
+        return 'txn-amt-out';
+
+      case 'BANK_TO_WALLET':
+        return 'txn-amt-in';
+
+      default:
+        return 'txn-amt-def';
+    }
+  }
+
+  getTransactionSign(type: string): string {
+
+    switch (type) {
+
+      case 'WALLET_TO_WALLET':
+      case 'MERCHANT_PAYMENT':
+      case 'WALLET_TO_BANK':
+        return '-';
+
+      case 'BANK_TO_WALLET':
+        return '+';
+
+      default:
+        return '';
+    }
+  }
+
+  formatAmount(amount: number): string {
+
+    if (amount == null || amount === undefined) {
+      return '₹0.00';
+    }
+
+    return '₹' + amount.toLocaleString('en-IN', {
+
+      minimumFractionDigits: 2,
+
+      maximumFractionDigits: 2
+
+    });
+  }
+
+  getTransactionIcon(type: string): string {
+
+    switch (type) {
+
+      case 'WALLET_TO_WALLET':
+        return 'send';
+
+      case 'MERCHANT_PAYMENT':
+        return 'shopping_cart';
+
+      case 'BANK_TO_WALLET':
+        return 'arrow_circle_down';
+
+      case 'WALLET_TO_BANK':
+        return 'arrow_circle_up';
+
+      default:
+        return 'receipt';
+    }
+  }
+
+  getTransactionColor(type: string): string {
+
+    switch (type) {
+
+      case 'WALLET_TO_WALLET':
+      case 'MERCHANT_PAYMENT':
+      case 'WALLET_TO_BANK':
+        return '#f43f5e';
+
+      case 'BANK_TO_WALLET':
+        return '#10b981';
+
+      default:
+        return '#6366f1';
+    }
+  }
+
+  formatTransactionType(type: string): string {
+
+    return type ? type.replace(/_/g, ' ') : '';
+  }
+
+  // =========================================================
+  // LOAD DATA
+  // =========================================================
 
   loadDashboardData(): void {
+
     this.isLoading = true;
 
     this.walletService.getBalance().subscribe({
+
       next: (data) => {
+
         this.wallet = data;
+
         this.isLoading = false;
+
         setTimeout(() => {
+
           this.initStarfield();
+
           this.init3DTilt();
+
           this.initActivityChart();
+
         }, 300);
       },
+
       error: () => {
-        this.snackBar.open('Failed to load wallet data', 'Close', { duration: 3000 });
+
+        this.showPopup('Failed to load wallet data');
+
         this.isLoading = false;
       }
     });
 
     this.walletService.getHistory().subscribe({
-      next: (data) => { this.transactions = data; },
-      error: (err) => { console.error('Failed to load transactions', err); }
+
+      next: (data) => {
+
+        this.transactions = data;
+      },
+
+      error: (err) => {
+
+        console.error(err);
+      }
     });
 
     this.bankService.getAccounts().subscribe({
-      next: (data) => { this.bankAccounts = data; },
-      error: (err) => { console.error('Failed to load bank accounts', err); }
+
+      next: (data) => {
+
+        this.bankAccounts = data;
+      },
+
+      error: (err) => {
+
+        console.error(err);
+      }
     });
   }
 
-  // ─── STARFIELD ANIMATION ──────────────────────────────────────
+  // =========================================================
+  // LOGOUT
+  // =========================================================
+
+  logout(): void {
+
+    this.auth.logout();
+
+    this.router.navigate(['/login']);
+  }
+
+  // =========================================================
+  // SEND MONEY
+  // =========================================================
+
+  onSendMoney(): void {
+
+    if (this.sendMoneyForm.invalid) {
+
+      this.showPopup('Please fill in all required fields');
+
+      return;
+    }
+
+    this.walletService.sendMoney(this.sendMoneyForm.value).subscribe({
+
+      next: () => {
+
+        this.showPopup('Money sent successfully!');
+
+        this.sendMoneyForm.reset();
+
+        this.loadDashboardData();
+      },
+
+      error: (err) => {
+
+        this.showPopup(
+          'Failed to send money: ' +
+          (err.error?.message || err.message),
+          4000
+        );
+      }
+    });
+  }
+
+  // =========================================================
+  // ADD FUNDS
+  // =========================================================
+
+  onAddFunds(): void {
+
+    if (this.addFundsForm.invalid) {
+
+      this.showPopup('Please fill in all fields');
+
+      return;
+    }
+
+    this.walletService.addFunds(
+      this.addFundsForm.value.bankAccountId,
+      this.addFundsForm.value.amount
+    ).subscribe({
+
+      next: () => {
+
+        this.showPopup('Funds added successfully!');
+
+        this.addFundsForm.reset();
+
+        this.loadDashboardData();
+      },
+
+      error: (err) => {
+
+        this.showPopup(
+          'Failed to add funds: ' +
+          (err.error?.message || err.message),
+          4000
+        );
+      }
+    });
+  }
+
+  // =========================================================
+  // WITHDRAW FUNDS
+  // =========================================================
+
+  onWithdrawFunds(): void {
+
+    if (this.withdrawFundsForm.invalid) {
+
+      this.showPopup('Please fill in all fields');
+
+      return;
+    }
+
+    this.walletService.withdrawFunds(
+      this.withdrawFundsForm.value.bankAccountId,
+      this.withdrawFundsForm.value.amount
+    ).subscribe({
+
+      next: () => {
+
+        this.showPopup('Funds withdrawn successfully!');
+
+        this.withdrawFundsForm.reset();
+
+        this.loadDashboardData();
+      },
+
+      error: (err) => {
+
+        this.showPopup(
+          'Failed to withdraw funds: ' +
+          (err.error?.message || err.message),
+          4000
+        );
+      }
+    });
+  }
+
+  // =========================================================
+  // LINK BANK
+  // =========================================================
+
+  onLinkBankAccount(): void {
+
+    if (this.linkBankAccountForm.invalid) {
+
+      this.showPopup('Please fill in all fields correctly');
+
+      return;
+    }
+
+    this.bankService.linkAccount(
+      this.linkBankAccountForm.value
+    ).subscribe({
+
+      next: () => {
+
+        this.showPopup('Bank account linked successfully!');
+
+        this.linkBankAccountForm.reset();
+
+        this.loadDashboardData();
+      },
+
+      error: (err) => {
+
+        this.showPopup(
+          'Failed to link bank account: ' +
+          (err.error?.message || err.message),
+          4000
+        );
+      }
+    });
+  }
+
+  // =========================================================
+  // STARFIELD
+  // =========================================================
 
   private initStarfield(): void {
+
     const canvas = document.getElementById('starfield') as HTMLCanvasElement;
+
     if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
+
     if (!ctx) return;
 
     const resize = () => {
+
       canvas.width = window.innerWidth;
+
       canvas.height = window.innerHeight;
     };
 
     resize();
+
     window.addEventListener('resize', resize);
 
     this.stars = Array.from({ length: 130 }, () => ({
+
       x: Math.random() * canvas.width,
+
       y: Math.random() * canvas.height,
+
       r: Math.random() * 1.4 + 0.2,
+
       alpha: Math.random(),
+
       dAlpha: (Math.random() - 0.5) * 0.006,
+
       vx: (Math.random() - 0.5) * 0.12,
+
       vy: (Math.random() - 0.5) * 0.12
+
     }));
 
     const draw = () => {
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
       this.stars.forEach((s: any) => {
-        s.alpha = Math.max(0.05, Math.min(0.9, s.alpha + s.dAlpha));
-        if (s.alpha <= 0.05 || s.alpha >= 0.9) s.dAlpha *= -1;
+
+        s.alpha = Math.max(
+          0.05,
+          Math.min(0.9, s.alpha + s.dAlpha)
+        );
+
+        if (s.alpha <= 0.05 || s.alpha >= 0.9) {
+          s.dAlpha *= -1;
+        }
+
         s.x = (s.x + s.vx + canvas.width) % canvas.width;
+
         s.y = (s.y + s.vy + canvas.height) % canvas.height;
+
         ctx.beginPath();
+
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(180, 180, 255, ${s.alpha})`;
+
+        ctx.fillStyle = `rgba(180,180,255,${s.alpha})`;
+
         ctx.fill();
       });
+
       this.starAnimFrame = requestAnimationFrame(draw);
     };
 
     draw();
   }
 
-  // ─── 3D TILT ON BALANCE CARD ──────────────────────────────────
+  // =========================================================
+  // 3D TILT
+  // =========================================================
 
   private init3DTilt(): void {
+
     const card = document.getElementById('balanceCard3d');
+
     if (!card) return;
 
     card.addEventListener('mousemove', (e: MouseEvent) => {
+
       const rect = card.getBoundingClientRect();
+
       const x = (e.clientX - rect.left) / rect.width - 0.5;
+
       const y = (e.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `perspective(900px) rotateX(${-y * 10}deg) rotateY(${x * 10}deg) scale(1.02)`;
+
+      card.style.transform =
+        `perspective(900px)
+        rotateX(${-y * 10}deg)
+        rotateY(${x * 10}deg)
+        scale(1.02)`;
     });
 
     card.addEventListener('mouseleave', () => {
+
       card.style.transform = '';
     });
   }
 
-  // ─── ACTIVITY CHART ───────────────────────────────────────────
-  // NOTE: Add this script to your index.html <head> for Chart.js:
-  // <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  // =========================================================
+  // CHART
+  // =========================================================
 
   private initActivityChart(): void {
-    const canvas = document.getElementById('activityChart') as HTMLCanvasElement;
-    if (!canvas || typeof Chart === 'undefined') return;
-    if (this.activityChart) this.activityChart.destroy();
+
+    const canvas =
+      document.getElementById('activityChart') as HTMLCanvasElement;
+
+    if (!canvas || typeof Chart === 'undefined') {
+      return;
+    }
+
+    if (this.activityChart) {
+      this.activityChart.destroy();
+    }
 
     const ctx = canvas.getContext('2d');
+
     if (!ctx) return;
 
     const sentGrad = ctx.createLinearGradient(0, 0, 0, 100);
-    sentGrad.addColorStop(0, 'rgba(99, 102, 241, 0.45)');
-    sentGrad.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+    sentGrad.addColorStop(0, 'rgba(99,102,241,0.45)');
+
+    sentGrad.addColorStop(1, 'rgba(99,102,241,0)');
 
     const recvGrad = ctx.createLinearGradient(0, 0, 0, 100);
-    recvGrad.addColorStop(0, 'rgba(16, 185, 129, 0.38)');
-    recvGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
 
-    // Compute weekly data from real transactions
+    recvGrad.addColorStop(0, 'rgba(16,185,129,0.38)');
+
+    recvGrad.addColorStop(1, 'rgba(16,185,129,0)');
+
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
     const sent = [0, 0, 0, 0, 0, 0, 0];
+
     const recv = [0, 0, 0, 0, 0, 0, 0];
 
-    if (this.transactions && this.transactions.length > 0) {
-      this.transactions.forEach((txn: any) => {
-        const d = new Date(txn.timestamp);
-        const day = d.getDay(); // 0=Sun..6=Sat, we'll map to Mon-Sun
-        const idx = day === 0 ? 6 : day - 1;
-        if (['WALLET_TO_WALLET', 'MERCHANT_PAYMENT', 'WALLET_TO_BANK'].includes(txn.type)) {
-          sent[idx] += txn.amount;
-        } else {
-          recv[idx] += txn.amount;
-        }
-      });
-    } else {
-      // Demo data if no transactions
-      const demo = [1200, 800, 2500, 600, 1000, 3200, 440];
-      const demoR = [5000, 0, 0, 3400, 0, 0, 0];
-      demo.forEach((v, i) => { sent[i] = v; recv[i] = demoR[i]; });
-    }
-
     this.activityChart = new Chart(canvas, {
+
       type: 'line',
+
       data: {
+
         labels: days,
+
         datasets: [
+
           {
             label: 'Sent',
             data: sent,
             borderColor: '#6366f1',
-            borderWidth: 2,
-            pointRadius: 3,
-            pointBackgroundColor: '#6366f1',
-            fill: true,
             backgroundColor: sentGrad,
+            fill: true,
             tension: 0.45
           },
+
           {
             label: 'Received',
             data: recv,
             borderColor: '#10b981',
-            borderWidth: 2,
-            pointRadius: 3,
-            pointBackgroundColor: '#10b981',
-            fill: true,
             backgroundColor: recvGrad,
+            fill: true,
             tension: 0.45
           }
         ]
       },
+
       options: {
+
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(10, 15, 30, 0.92)',
-            titleColor: 'rgba(255,255,255,0.9)',
-            bodyColor: 'rgba(255,255,255,0.65)',
-            borderColor: 'rgba(255,255,255,0.1)',
-            borderWidth: 1,
-            padding: 10,
-            callbacks: {
-              label: (ctx: any) => ` ₹${ctx.parsed.y.toLocaleString('en-IN')}`
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } }
-          },
-          y: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: {
-              color: 'rgba(255,255,255,0.4)',
-              font: { size: 10 },
-              callback: (v: number) => '₹' + (v / 1000).toFixed(0) + 'k'
-            }
-          }
-        }
+
+        maintainAspectRatio: false
       }
     });
-  }
-
-  // ─── ACTIONS ──────────────────────────────────────────────────
-
-  logout(): void {
-    this.auth.logout();
-    this.router.navigate(['/login']);
-  }
-
-  onSendMoney(): void {
-    if (this.sendMoneyForm.invalid) {
-      this.snackBar.open('Please fill in all required fields', 'Close', { duration: 3000 });
-      return;
-    }
-    this.walletService.sendMoney(this.sendMoneyForm.value).subscribe({
-      next: () => {
-        this.snackBar.open('Money sent successfully!', 'Close', { duration: 3000 });
-        this.sendMoneyForm.reset();
-        this.loadDashboardData();
-      },
-      error: (err) => {
-        this.snackBar.open('Failed to send money: ' + (err.error?.message || err.message), 'Close', { duration: 4000 });
-      }
-    });
-  }
-
-  onAddFunds(): void {
-    if (this.addFundsForm.invalid) {
-      this.snackBar.open('Please fill in all fields', 'Close', { duration: 3000 });
-      return;
-    }
-    this.walletService.addFunds(
-      this.addFundsForm.value.bankAccountId,
-      this.addFundsForm.value.amount
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('Funds added successfully!', 'Close', { duration: 3000 });
-        this.addFundsForm.reset();
-        this.loadDashboardData();
-      },
-      error: (err) => {
-        this.snackBar.open('Failed to add funds: ' + (err.error?.message || err.message), 'Close', { duration: 4000 });
-      }
-    });
-  }
-
-  onWithdrawFunds(): void {
-    if (this.withdrawFundsForm.invalid) {
-      this.snackBar.open('Please fill in all fields', 'Close', { duration: 3000 });
-      return;
-    }
-    this.walletService.withdrawFunds(
-      this.withdrawFundsForm.value.bankAccountId,
-      this.withdrawFundsForm.value.amount
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('Funds withdrawn successfully!', 'Close', { duration: 3000 });
-        this.withdrawFundsForm.reset();
-        this.loadDashboardData();
-      },
-      error: (err) => {
-        this.snackBar.open('Failed to withdraw funds: ' + (err.error?.message || err.message), 'Close', { duration: 4000 });
-      }
-    });
-  }
-
-  onLinkBankAccount(): void {
-    if (this.linkBankAccountForm.invalid) {
-      this.snackBar.open('Please fill in all fields correctly', 'Close', { duration: 3000 });
-      return;
-    }
-    this.bankService.linkAccount(this.linkBankAccountForm.value).subscribe({
-      next: () => {
-        this.snackBar.open('Bank account linked successfully!', 'Close', { duration: 3000 });
-        this.linkBankAccountForm.reset();
-        this.loadDashboardData();
-      },
-      error: (err) => {
-        this.snackBar.open('Failed to link bank account: ' + (err.error?.message || err.message), 'Close', { duration: 4000 });
-      }
-    });
-  }
-
-  // ─── HELPERS ──────────────────────────────────────────────────
-
-  formatAmount(amount: number): string {
-    if (amount == null || amount === undefined) return '₹0.00';
-    return '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  getTransactionIcon(type: string): string {
-    switch (type) {
-      case 'WALLET_TO_WALLET': return 'send';
-      case 'MERCHANT_PAYMENT': return 'shopping_cart';
-      case 'BANK_TO_WALLET':   return 'arrow_circle_down';
-      case 'WALLET_TO_BANK':   return 'arrow_circle_up';
-      default: return 'receipt';
-    }
-  }
-
-  // Returns CSS class for txn icon background
-  
-
-  getTransactionColor(type: string): string {
-    switch (type) {
-      case 'WALLET_TO_WALLET':
-      case 'MERCHANT_PAYMENT':
-      case 'WALLET_TO_BANK': return '#f43f5e';
-      case 'BANK_TO_WALLET': return '#10b981';
-      default: return '#6366f1';
-    }
-  }
-
-  formatTransactionType(type: string): string {
-    return type ? type.replace(/_/g, ' ') : '';
   }
 }

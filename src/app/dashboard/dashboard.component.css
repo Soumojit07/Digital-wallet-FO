@@ -44,8 +44,9 @@
     linear-gradient(160deg, #080c1a 0%, #0e1629 50%, #13102a 100%);
   color: var(--text);
   overflow-x: hidden;
-  position: relative;
+  position: center;
 }
+
 
 /* =========================
    STARFIELD CANVAS
@@ -149,9 +150,17 @@
   text-transform: uppercase;
 }
 
+.brand-name[_ngcontent-ng-c162780298] {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.3px;
+    color: white;
+}
+
 .user-name {
   font-size: 13px;
   font-weight: 600;
+  color: white !important;
 }
 
 .logout-btn {
@@ -445,10 +454,249 @@
 
 .stat-info label {
   font-size: 10px;
-  color: var(--muted);
+  color: white;
   text-transform: uppercase;
   letter-spacing: 0.7px;
   font-weight: 600;
+}
+
+
+/* =========================
+   CENTER POPUP SNACKBAR
+========================= */
+
+::ng-deep .center-snackbar {
+
+  position: fixed !important;
+
+  top: 50% !important;
+  left: 50% !important;
+
+  transform: translate(-50%, -50%) !important;
+
+  background: rgba(15, 15, 25, 0.95) !important;
+
+  color: white !important;
+
+  border-radius: 18px !important;
+
+  padding: 18px 26px !important;
+
+  font-size: 15px !important;
+
+  font-weight: 600 !important;
+
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45) !important;
+
+  z-index: 99999 !important;
+
+  backdrop-filter: blur(12px) !important;
+
+  border: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+
+
+::ng-deep .center-snackbar {
+
+  position: fixed !important;
+
+  top: 50% !important;
+  left: 50% !important;
+
+  transform: translate(-50%, -50%) !important;
+
+  min-width: 320px !important;
+
+  background: rgba(15, 23, 42, 0.95) !important;
+
+  color: #ffffff !important;
+
+  border-radius: 18px !important;
+
+  backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.45),
+    0 0 30px rgba(99,102,241,0.25);
+
+  text-align: center;
+
+  padding: 18px 22px !important;
+
+  font-size: 15px !important;
+
+  font-weight: 600;
+
+  z-index: 99999 !important;
+}
+
+::ng-deep .center-snackbar .mat-mdc-snack-bar-label {
+  color: white !important;
+  text-align: center;
+  width: 100%;
+}
+
+
+/* =========================
+   CENTER POPUP
+========================= */
+
+::ng-deep .center-snackbar {
+
+  position: fixed !important;
+
+  top: 50% !important;
+  left: 50% !important;
+
+  transform: translate(-50%, -50%) !important;
+
+  min-width: 320px !important;
+
+  background: rgba(15, 23, 42, 0.96) !important;
+
+  color: #fff !important;
+
+  border-radius: 18px !important;
+
+  backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.45),
+    0 0 30px rgba(99,102,241,0.25);
+
+  text-align: center;
+
+  padding: 18px 22px !important;
+
+  font-size: 15px !important;
+
+  font-weight: 600;
+
+  z-index: 99999 !important;
+}
+
+/* =========================
+   MATERIAL SELECT DROPDOWN
+========================= */
+
+::ng-deep .cdk-overlay-container {
+
+  z-index: 100000 !important;
+}
+
+::ng-deep .cdk-overlay-pane {
+
+  z-index: 100000 !important;
+}
+
+::ng-deep .mat-mdc-select-panel {
+
+  background: rgba(15, 23, 42, 0.98) !important;
+
+  border-radius: 18px !important;
+
+  backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  overflow: hidden;
+
+  padding: 8px !important;
+}
+
+/* dropdown options */
+
+::ng-deep .mat-mdc-option {
+
+  color: white !important;
+
+  border-radius: 12px;
+
+  margin-bottom: 4px;
+}
+
+::ng-deep .mat-mdc-option:hover {
+
+  background: rgba(99,102,241,0.18) !important;
+}
+
+/* selected option */
+
+::ng-deep .mdc-list-item--selected {
+
+  background: rgba(99,102,241,0.25) !important;
+}
+
+/* MAT SELECT DROPDOWN PANEL */
+.cdk-overlay-pane {
+  z-index: 999999 !important;
+}
+
+.mat-mdc-select-panel {
+  background: rgba(15, 23, 42, 0.98) !important;
+  backdrop-filter: blur(18px);
+
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow:
+    0 15px 50px rgba(0,0,0,0.45),
+    0 0 20px rgba(99,102,241,0.22) !important;
+}
+
+/* OPTION TEXT */
+.mat-mdc-option {
+  color: white !important;
+  font-weight: 500;
+}
+
+/* HOVER EFFECT */
+.mat-mdc-option:hover {
+  background: rgba(99,102,241,0.18) !important;
+}
+
+/* SELECT TEXT */
+.mat-mdc-select-value {
+  color: white !important;
+}
+
+/* DROPDOWN ARROW */
+.mat-mdc-select-arrow {
+  color: white !important;
+}
+
+::ng-deep .center-snackbar .mdc-button__label {
+  color: #a5b4fc !important;
+  font-weight: 700;
+}
+
+/* Snackbar text */
+
+::ng-deep .center-snackbar .mdc-snackbar__label {
+
+  color: white !important;
+
+  text-align: center !important;
+
+  font-family: 'Sora', sans-serif !important;
+
+  font-size: 14px !important;
+
+  font-weight: 600 !important;
+}
+
+/* Close button */
+
+::ng-deep .center-snackbar .mat-mdc-snack-bar-action {
+
+  color: #8b5cf6 !important;
+
+  font-weight: 700 !important;
 }
 
 .stat-val {
@@ -644,9 +892,16 @@
 
 /* Tab bar */
 ::ng-deep .dashboard-tabs .mat-mdc-tab-header {
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.88), rgba(139, 92, 246, 0.85), rgba(6, 182, 212, 0.82));;
   border-bottom: 1px solid var(--border) !important;
   padding: 0 12px !important;
+}
+
+.brand-name[_ngcontent-ng-c2672595835] {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.3px;
+    color: white;
 }
 
 /* Tab labels */
@@ -697,14 +952,14 @@
 }
 
 .form-card mat-card-title {
-  color: var(--text) !important;
+  color: white !important;
   font-size: 16px !important;
   font-weight: 700 !important;
   font-family: 'Sora', sans-serif !important;
 }
 
 .form-card mat-card-subtitle {
-  color: var(--muted) !important;
+  color: white !important;
   font-size: 12px !important;
   font-family: 'Sora', sans-serif !important;
 }
@@ -1299,6 +1554,62 @@ mat-card-subtitle{
 
   color:rgba(255,255,255,0.72) !important;
 }
+
+/* =====================================
+   SMALL ICON INSIDE BOX
+===================================== */
+
+.small-action-icon{
+
+  width:22px;
+
+  height:22px;
+
+  object-fit:contain;
+
+  display:block;
+
+  z-index:2;
+
+  position:relative;
+}
+
+/* ICON BOX */
+
+.act-icon-wrap{
+
+  width:54px;
+
+  height:54px;
+
+  border-radius:16px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  margin:auto auto 12px;
+
+  overflow:hidden;
+}
+
+/* OPTIONAL HOVER */
+
+.action-card:hover .small-action-icon{
+
+  transform:scale(1.1);
+
+  transition:0.3s ease;
+}
+
+.user-name[_ngcontent-ng-c2672595835] {
+    font-size: 13px;
+    font-weight: 600;
+    color: white !important;
+}
+
 
 @media (max-width: 640px) {
   .bc-amount { font-size: 32px; }

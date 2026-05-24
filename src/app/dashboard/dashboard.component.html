@@ -126,38 +126,71 @@
     <!-- ===================== QUICK ACTIONS ===================== -->
     <div class="quick-actions">
 
-      <mat-card class="action-card act-send" (click)="selectedTab = 0">
-        <div class="act-orb"></div>
-        <div class="act-icon-wrap act-icon-indigo">
-          <mat-icon>send</mat-icon>
-        </div>
-        <h4>Send</h4>
-        <p>Transfer funds</p>
-      </mat-card>
+<mat-card
+  class="action-card act-send"
+  (click)="selectedTab = 0">
+
+  <div class="act-orb"></div>
+
+  <!-- SMALL ICON BOX -->
+
+  <div class="act-icon-wrap act-icon-indigo">
+
+    <img
+      class="small-action-icon"
+      src="assets/icons/money-transfer.png"
+      alt="Send">
+
+  </div>
+
+  <h4>
+    Send
+  </h4>
+
+  <p>
+    Transfer funds
+  </p>
+
+   </mat-card>
 
       <mat-card class="action-card act-add" (click)="selectedTab = 1">
         <div class="act-orb"></div>
-        <div class="act-icon-wrap act-icon-green">
-          <mat-icon>add_circle</mat-icon>
-        </div>
+  <div class="act-icon-wrap act-icon-indigo">
+
+    <img
+      class="small-action-icon"
+      src="assets/icons/add-wallet.png"
+      alt="Send">
+
+  </div>
         <h4>Add Money</h4>
         <p>From bank</p>
       </mat-card>
 
       <mat-card class="action-card act-bank" (click)="selectedTab = 2">
         <div class="act-orb"></div>
-        <div class="act-icon-wrap act-icon-cyan">
-          <mat-icon>account_balance</mat-icon>
-        </div>
+  <div class="act-icon-wrap act-icon-indigo">
+
+    <img
+      class="small-action-icon"
+      src="assets/icons/bank.png"
+      alt="Send">
+
+  </div>
         <h4>Accounts</h4>
         <p>Manage banks</p>
       </mat-card>
 
       <mat-card class="action-card act-hist" (click)="selectedTab = 3">
         <div class="act-orb"></div>
-        <div class="act-icon-wrap act-icon-amber">
-          <mat-icon>history</mat-icon>
-        </div>
+  <div class="act-icon-wrap act-icon-indigo">
+
+    <img
+      class="small-action-icon"
+      src="assets/icons/file.png"
+      alt="Send">
+
+  </div>
         <h4>History</h4>
         <p>All activity</p>
       </mat-card>
