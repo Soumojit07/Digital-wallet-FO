@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { WalletService } from '../services/wallet.service';
@@ -6,12 +6,18 @@ import { BankService } from '../services/bank.service';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+declare var Chart: any;
+// Declare Chart.js global (loaded via CDN in index.html — see NOTE below)
+declare var Chart: any;
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit {
+
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
+
   user: any;
   wallet: any;
   transactions: any[] = [];
@@ -23,6 +29,10 @@ export class DashboardComponent implements OnInit {
   addFundsForm!: FormGroup;
   withdrawFundsForm!: FormGroup;
   linkBankAccountForm!: FormGroup;
+
+  private starAnimFrame: number = 0;
+  private activityChart: any = null;
+  private stars: any[] = [];
 
   get f() { return this.sendMoneyForm.controls; }
   get a() { return this.addFundsForm.controls; }
@@ -61,48 +71,278 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // ─── LIFECYCLE ───────────────────────────────────────────────
+
   ngOnInit(): void {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
     }
-
     this.user = this.auth.getUserData();
     this.loadDashboardData();
   }
 
+  ngAfterViewInit(): void {
+    // Small delay to ensure DOM is ready after data loads
+    setTimeout(() => {
+      this.initStarfield();
+      this.init3DTilt();
+      this.initActivityChart();
+    }, 400);
+  }
+
+
+  getInitials(): string {
+  if (!this.user?.fullName) return '??';
+  const parts = this.user.fullName.trim().split(' ');
+  const first = parts[0]?.charAt(0) || '';
+  const second = parts[1]?.charAt(0) || '';
+  return (first + second).toUpperCase();
+}
+
+getBalanceDisplay(): string {
+  if (!this.wallet?.balance && this.wallet?.balance !== 0) return '0.00';
+  return Number(this.wallet.balance).toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+getTxnIconClass(type: string): string {
+  switch (type) {
+    case 'WALLET_TO_WALLET':
+    case 'WALLET_TO_BANK':   return 'txn-icon-out';
+    case 'BANK_TO_WALLET':   return 'txn-icon-in';
+    case 'MERCHANT_PAYMENT': return 'txn-icon-shop';
+    default: return 'txn-icon-def';
+  }
+}
+
+getTxnAmountClass(type: string): string {
+  switch (type) {
+    case 'WALLET_TO_WALLET':
+    case 'MERCHANT_PAYMENT':
+    case 'WALLET_TO_BANK': return 'txn-amt-out';
+    case 'BANK_TO_WALLET': return 'txn-amt-in';
+    default: return 'txn-amt-def';
+  }
+}
+
+getTransactionSign(type: string): string {
+  switch (type) {
+    case 'WALLET_TO_WALLET':
+    case 'MERCHANT_PAYMENT':
+    case 'WALLET_TO_BANK': return '-';
+    case 'BANK_TO_WALLET': return '+';
+    default: return '';
+  }
+}
+  ngOnDestroy(): void {
+    if (this.starAnimFrame) cancelAnimationFrame(this.starAnimFrame);
+    if (this.activityChart) this.activityChart.destroy();
+  }
+
+  // ─── DATA LOADING ─────────────────────────────────────────────
+
   loadDashboardData(): void {
     this.isLoading = true;
-    
+
     this.walletService.getBalance().subscribe({
       next: (data) => {
         this.wallet = data;
         this.isLoading = false;
+        setTimeout(() => {
+          this.initStarfield();
+          this.init3DTilt();
+          this.initActivityChart();
+        }, 300);
       },
-      error: (err) => {
+      error: () => {
         this.snackBar.open('Failed to load wallet data', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
     });
 
     this.walletService.getHistory().subscribe({
-      next: (data) => {
-        this.transactions = data;
-      },
-      error: (err) => {
-        console.error('Failed to load transactions', err);
-      }
+      next: (data) => { this.transactions = data; },
+      error: (err) => { console.error('Failed to load transactions', err); }
     });
 
     this.bankService.getAccounts().subscribe({
-      next: (data) => {
-        this.bankAccounts = data;
+      next: (data) => { this.bankAccounts = data; },
+      error: (err) => { console.error('Failed to load bank accounts', err); }
+    });
+  }
+
+  // ─── STARFIELD ANIMATION ──────────────────────────────────────
+
+  private initStarfield(): void {
+    const canvas = document.getElementById('starfield') as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    this.stars = Array.from({ length: 130 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.4 + 0.2,
+      alpha: Math.random(),
+      dAlpha: (Math.random() - 0.5) * 0.006,
+      vx: (Math.random() - 0.5) * 0.12,
+      vy: (Math.random() - 0.5) * 0.12
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      this.stars.forEach((s: any) => {
+        s.alpha = Math.max(0.05, Math.min(0.9, s.alpha + s.dAlpha));
+        if (s.alpha <= 0.05 || s.alpha >= 0.9) s.dAlpha *= -1;
+        s.x = (s.x + s.vx + canvas.width) % canvas.width;
+        s.y = (s.y + s.vy + canvas.height) % canvas.height;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(180, 180, 255, ${s.alpha})`;
+        ctx.fill();
+      });
+      this.starAnimFrame = requestAnimationFrame(draw);
+    };
+
+    draw();
+  }
+
+  // ─── 3D TILT ON BALANCE CARD ──────────────────────────────────
+
+  private init3DTilt(): void {
+    const card = document.getElementById('balanceCard3d');
+    if (!card) return;
+
+    card.addEventListener('mousemove', (e: MouseEvent) => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `perspective(900px) rotateX(${-y * 10}deg) rotateY(${x * 10}deg) scale(1.02)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  }
+
+  // ─── ACTIVITY CHART ───────────────────────────────────────────
+  // NOTE: Add this script to your index.html <head> for Chart.js:
+  // <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  private initActivityChart(): void {
+    const canvas = document.getElementById('activityChart') as HTMLCanvasElement;
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (this.activityChart) this.activityChart.destroy();
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const sentGrad = ctx.createLinearGradient(0, 0, 0, 100);
+    sentGrad.addColorStop(0, 'rgba(99, 102, 241, 0.45)');
+    sentGrad.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+    const recvGrad = ctx.createLinearGradient(0, 0, 0, 100);
+    recvGrad.addColorStop(0, 'rgba(16, 185, 129, 0.38)');
+    recvGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+    // Compute weekly data from real transactions
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const sent = [0, 0, 0, 0, 0, 0, 0];
+    const recv = [0, 0, 0, 0, 0, 0, 0];
+
+    if (this.transactions && this.transactions.length > 0) {
+      this.transactions.forEach((txn: any) => {
+        const d = new Date(txn.timestamp);
+        const day = d.getDay(); // 0=Sun..6=Sat, we'll map to Mon-Sun
+        const idx = day === 0 ? 6 : day - 1;
+        if (['WALLET_TO_WALLET', 'MERCHANT_PAYMENT', 'WALLET_TO_BANK'].includes(txn.type)) {
+          sent[idx] += txn.amount;
+        } else {
+          recv[idx] += txn.amount;
+        }
+      });
+    } else {
+      // Demo data if no transactions
+      const demo = [1200, 800, 2500, 600, 1000, 3200, 440];
+      const demoR = [5000, 0, 0, 3400, 0, 0, 0];
+      demo.forEach((v, i) => { sent[i] = v; recv[i] = demoR[i]; });
+    }
+
+    this.activityChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: days,
+        datasets: [
+          {
+            label: 'Sent',
+            data: sent,
+            borderColor: '#6366f1',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: '#6366f1',
+            fill: true,
+            backgroundColor: sentGrad,
+            tension: 0.45
+          },
+          {
+            label: 'Received',
+            data: recv,
+            borderColor: '#10b981',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: '#10b981',
+            fill: true,
+            backgroundColor: recvGrad,
+            tension: 0.45
+          }
+        ]
       },
-      error: (err) => {
-        console.error('Failed to load bank accounts', err);
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(10, 15, 30, 0.92)',
+            titleColor: 'rgba(255,255,255,0.9)',
+            bodyColor: 'rgba(255,255,255,0.65)',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label: (ctx: any) => ` ₹${ctx.parsed.y.toLocaleString('en-IN')}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: 'rgba(255,255,255,0.4)',
+              font: { size: 10 },
+              callback: (v: number) => '₹' + (v / 1000).toFixed(0) + 'k'
+            }
+          }
+        }
       }
     });
   }
+
+  // ─── ACTIONS ──────────────────────────────────────────────────
 
   logout(): void {
     this.auth.logout();
@@ -111,10 +351,9 @@ export class DashboardComponent implements OnInit {
 
   onSendMoney(): void {
     if (this.sendMoneyForm.invalid) {
-      this.snackBar.open('Please fill in all fields', 'Close', { duration: 3000 });
+      this.snackBar.open('Please fill in all required fields', 'Close', { duration: 3000 });
       return;
     }
-
     this.walletService.sendMoney(this.sendMoneyForm.value).subscribe({
       next: () => {
         this.snackBar.open('Money sent successfully!', 'Close', { duration: 3000 });
@@ -132,8 +371,10 @@ export class DashboardComponent implements OnInit {
       this.snackBar.open('Please fill in all fields', 'Close', { duration: 3000 });
       return;
     }
-
-    this.walletService.addFunds(this.addFundsForm.value.bankAccountId, this.addFundsForm.value.amount).subscribe({
+    this.walletService.addFunds(
+      this.addFundsForm.value.bankAccountId,
+      this.addFundsForm.value.amount
+    ).subscribe({
       next: () => {
         this.snackBar.open('Funds added successfully!', 'Close', { duration: 3000 });
         this.addFundsForm.reset();
@@ -150,8 +391,10 @@ export class DashboardComponent implements OnInit {
       this.snackBar.open('Please fill in all fields', 'Close', { duration: 3000 });
       return;
     }
-
-    this.walletService.withdrawFunds(this.withdrawFundsForm.value.bankAccountId, this.withdrawFundsForm.value.amount).subscribe({
+    this.walletService.withdrawFunds(
+      this.withdrawFundsForm.value.bankAccountId,
+      this.withdrawFundsForm.value.amount
+    ).subscribe({
       next: () => {
         this.snackBar.open('Funds withdrawn successfully!', 'Close', { duration: 3000 });
         this.withdrawFundsForm.reset();
@@ -168,7 +411,6 @@ export class DashboardComponent implements OnInit {
       this.snackBar.open('Please fill in all fields correctly', 'Close', { duration: 3000 });
       return;
     }
-
     this.bankService.linkAccount(this.linkBankAccountForm.value).subscribe({
       next: () => {
         this.snackBar.open('Bank account linked successfully!', 'Close', { duration: 3000 });
@@ -181,35 +423,33 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // ─── HELPERS ──────────────────────────────────────────────────
+
   formatAmount(amount: number): string {
-    return '₹' + amount?.toFixed(2) || '₹0.00';
+    if (amount == null || amount === undefined) return '₹0.00';
+    return '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   getTransactionIcon(type: string): string {
-    switch(type) {
-      case 'WALLET_TO_WALLET':
-        return 'send';
-      case 'MERCHANT_PAYMENT':
-        return 'shopping_cart';
-      case 'BANK_TO_WALLET':
-        return 'add_circle';
-      case 'WALLET_TO_BANK':
-        return 'remove_circle';
-      default:
-        return 'receipt';
+    switch (type) {
+      case 'WALLET_TO_WALLET': return 'send';
+      case 'MERCHANT_PAYMENT': return 'shopping_cart';
+      case 'BANK_TO_WALLET':   return 'arrow_circle_down';
+      case 'WALLET_TO_BANK':   return 'arrow_circle_up';
+      default: return 'receipt';
     }
   }
 
+  // Returns CSS class for txn icon background
+  
+
   getTransactionColor(type: string): string {
-    switch(type) {
+    switch (type) {
       case 'WALLET_TO_WALLET':
       case 'MERCHANT_PAYMENT':
-      case 'WALLET_TO_BANK':
-        return '#ef5350';
-      case 'BANK_TO_WALLET':
-        return '#66bb6a';
-      default:
-        return '#42a5f5';
+      case 'WALLET_TO_BANK': return '#f43f5e';
+      case 'BANK_TO_WALLET': return '#10b981';
+      default: return '#6366f1';
     }
   }
 
